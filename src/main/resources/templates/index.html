@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Spring JPA Relaciones</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+    <style>
+        :root {
+            --bg:        #080f0b;
+            --surface:   #0e1a12;
+            --surface2:  #152019;
+            --border:    rgba(255,255,255,.07);
+            --accent:    #b5f03e;
+            --accent2:   #3ef08a;
+            --white:     #edf5ee;
+            --muted:     #5a7a62;
+            --danger:    #f05555;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--white);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── NAV ── */
+        nav {
+            position: sticky; top: 0; z-index: 200;
+            display: flex; align-items: center; gap: 0;
+            height: 58px;
+            background: rgba(8,15,11,.88);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 2rem;
+        }
+        .brand {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.15rem; font-weight: 800;
+            letter-spacing: 1px;
+            color: var(--accent);
+            text-decoration: none;
+            margin-right: 2.5rem;
+            white-space: nowrap;
+        }
+        .nav-links { display: flex; align-items: center; gap: .2rem; }
+        .nav-links a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: .83rem; font-weight: 500;
+            padding: .38rem .75rem;
+            border-radius: 6px;
+            transition: color .18s, background .18s;
+            white-space: nowrap;
+        }
+        .nav-links a:hover, .nav-links a.active { color: var(--white); background: rgba(255,255,255,.06); }
+
+        /* DROPDOWN */
+        .nav-dropdown { position: relative; }
+        .nav-dropdown > a {
+            display: flex; align-items: center; gap: .3rem; cursor: pointer;
+        }
+        .nav-dropdown > a::after {
+            content: '▾'; font-size: .65rem; opacity: .5;
+            transition: transform .2s;
+        }
+        .nav-dropdown:hover > a::after { transform: rotate(180deg); }
+        .dropdown-menu {
+            display: none;
+            position: absolute; top: calc(100% + 6px); left: 0;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            min-width: 170px; padding: .35rem 0;
+            box-shadow: 0 16px 40px rgba(0,0,0,.5);
+            animation: dropIn .15s ease;
+        }
+        @keyframes dropIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+        .nav-dropdown:hover .dropdown-menu { display: block; }
+        .dropdown-menu a {
+            display: block; padding: .5rem 1rem;
+            color: var(--muted); font-size: .82rem;
+            white-space: nowrap;
+            transition: background .15s, color .15s;
+            background: none !important;
+        }
+        .dropdown-menu a:hover { background: rgba(255,255,255,.05) !important; color: var(--white); }
+        .dropdown-menu .divider { border-top: 1px solid var(--border); margin: .3rem 0; }
+
+        /* ── HERO ── */
+        .hero {
+            position: relative;
+            padding: 7rem 2rem 5rem;
+            text-align: center;
+            overflow: hidden;
+        }
+        .hero-bg {
+            position: absolute; inset: 0; pointer-events: none;
+            background: radial-gradient(ellipse 70% 60% at 50% 0%, rgba(181,240,62,.08) 0%, transparent 70%);
+        }
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: .5rem;
+            background: rgba(181,240,62,.08);
+            border: 1px solid rgba(181,240,62,.2);
+            border-radius: 20px;
+            padding: .3rem .9rem;
+            font-size: .75rem; font-weight: 600;
+            color: var(--accent); letter-spacing: .5px;
+            margin-bottom: 1.5rem;
+        }
+        .hero h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(3.2rem, 9vw, 6.5rem);
+            font-weight: 800;
+            line-height: .95;
+            letter-spacing: -1px;
+        }
+        .hero h1 em { font-style: normal; color: var(--accent); }
+        .hero p {
+            margin: 1.5rem auto 0;
+            color: var(--muted);
+            font-size: 1rem; font-weight: 400;
+            max-width: 420px;
+            line-height: 1.6;
+        }
+
+        /* ── CARDS GRID ── */
+        .cards-section { padding: 0 2rem 5rem; }
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 1rem;
+            max-width: 940px;
+            margin: 0 auto;
+        }
+
+        /* CARD BASE */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.8rem 1.5rem 1.6rem;
+            text-decoration: none;
+            color: var(--white);
+            display: flex; flex-direction: column; gap: .55rem;
+            position: relative; overflow: hidden;
+            transition: transform .22s, border-color .22s, box-shadow .22s;
+        }
+        .card::before {
+            content: ''; position: absolute;
+            inset: 0; border-radius: inherit;
+            background: radial-gradient(ellipse 80% 60% at 20% 0%, rgba(181,240,62,.06) 0%, transparent 60%);
+            opacity: 0; transition: opacity .3s;
+            pointer-events: none;
+        }
+        .card:hover { transform: translateY(-5px); border-color: rgba(181,240,62,.35); box-shadow: 0 20px 50px rgba(0,0,0,.35); }
+        .card:hover::before { opacity: 1; }
+        .card .icon { font-size: 1.9rem; line-height: 1; }
+        .card h3 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.1rem; font-weight: 700;
+            letter-spacing: .3px;
+        }
+        .card p { font-size: .8rem; color: var(--muted); line-height: 1.55; flex: 1; }
+        .card .arrow {
+            margin-top: .5rem;
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            background: rgba(181,240,62,.1);
+            border: 1px solid rgba(181,240,62,.2);
+            display: flex; align-items: center; justify-content: center;
+            font-size: .85rem; color: var(--accent);
+            align-self: flex-end;
+            transition: background .2s, transform .2s;
+        }
+        .card:hover .arrow { background: var(--accent); color: #080f0b; transform: translateX(2px); }
+
+        /* CARD CON BOTONES (Clubes) */
+        .card-actions {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.8rem 1.5rem 1.6rem;
+            display: flex; flex-direction: column; gap: .55rem;
+            position: relative; overflow: hidden;
+            transition: border-color .22s, box-shadow .22s;
+        }
+        .card-actions::before {
+            content: ''; position: absolute; inset: 0; border-radius: inherit;
+            background: radial-gradient(ellipse 80% 60% at 20% 0%, rgba(181,240,62,.06) 0%, transparent 60%);
+            opacity: 0; transition: opacity .3s;
+            pointer-events: none;
+        }
+        .card-actions:hover { border-color: rgba(181,240,62,.35); box-shadow: 0 20px 50px rgba(0,0,0,.35); }
+        .card-actions:hover::before { opacity: 1; }
+        .card-actions .icon { font-size: 1.9rem; line-height: 1; }
+        .card-actions h3 { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; }
+        .card-actions p { font-size: .8rem; color: var(--muted); line-height: 1.55; flex: 1; }
+        .card-btns { display: flex; gap: .6rem; margin-top: .5rem; }
+        .btn-card {
+            flex: 1; text-align: center;
+            padding: .45rem .5rem;
+            border-radius: 8px;
+            font-size: .78rem; font-weight: 600;
+            text-decoration: none;
+            transition: all .18s;
+        }
+        .btn-card-outline {
+            border: 1px solid rgba(181,240,62,.35);
+            color: var(--accent);
+        }
+        .btn-card-outline:hover { background: rgba(181,240,62,.1); }
+        .btn-card-fill { background: var(--accent); color: #080f0b; border: 1px solid var(--accent); }
+        .btn-card-fill:hover { background: #caff5a; }
+
+        /* ── FOOTER ── */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--muted);
+            font-size: .78rem;
+            border-top: 1px solid var(--border);
+        }
+        footer span { color: var(--accent); }
+
+        /* FADE IN */
+        @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+        .hero-badge { animation: fadeUp .5s .1s both; }
+        .hero h1    { animation: fadeUp .5s .2s both; }
+        .hero p     { animation: fadeUp .5s .3s both; }
+        .cards      { animation: fadeUp .5s .4s both; }
+    </style>
+</head>
+<body>
+<nav>
+    <a href="/" class="brand">⚽ JPA Relaciones</a>
+    <div class="nav-links">
+        <a th:href="@{/asociaciones}">Asociaciones</a>
+        <div class="nav-dropdown" onmouseenter="clearTimeout(this._t);this.classList.add('open')" onmouseleave="this._t=setTimeout(()=>this.classList.remove('open'),200)">
+            <a href="#" onclick="return false;">Clubes</a>
+            <div class="dropdown-menu">
+                <a th:href="@{/clubes/lista}">📋 Ver lista</a>
+                <div class="divider"></div>
+                <a th:href="@{/clubes/nuevo}">➕ Nuevo club</a>
+            </div>
+        </div>
+        <a th:href="@{/entrenadores}">Entrenadores</a>
+        <a th:href="@{/jugadores}">Jugadores</a>
+        <a th:href="@{/competiciones}">Competiciones</a>
+    </div>
+</nav>
+
+<section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-badge">⚽ Spring Boot · JPA · Thymeleaf</div>
+    <h1>Spring JPA<br/><em>Relaciones</em></h1>
+    <p>Gestión de entidades de fútbol con relaciones @OneToOne, @OneToMany, @ManyToOne y @ManyToMany.</p>
+</section>
+
+<section class="cards-section">
+    <div class="cards">
+        <a th:href="@{/asociaciones/lista}" class="card">
+            <div class="icon">🏛️</div>
+            <h3>Asociaciones</h3>
+            <p>Federaciones y ligas a las que pertenecen los clubes.</p>
+            <div class="arrow">→</div>
+        </a>
+
+        <div class="card-actions">
+            <div class="icon">🏟️</div>
+            <h3>Clubes</h3>
+            <p>Equipos con entrenador, jugadores y competiciones.</p>
+            <div class="card-btns">
+                <a th:href="@{/clubes/lista}" class="btn-card btn-card-outline">Ver lista</a>
+                <a th:href="@{/clubes/nuevo}" class="btn-card btn-card-fill">+ Nuevo</a>
+            </div>
+        </div>
+
+        <a th:href="@{/entrenadores/lista}" class="card">
+            <div class="icon">👔</div>
+            <h3>Entrenadores</h3>
+            <p>Director técnico asignado a cada club de fútbol.</p>
+            <div class="arrow">→</div>
+        </a>
+        <a th:href="@{/jugadores/lista}" class="card">
+            <div class="icon">⚽</div>
+            <h3>Jugadores</h3>
+            <p>Plantel de jugadores pertenecientes a un club.</p>
+            <div class="arrow">→</div>
+        </a>
+        <a th:href="@{/competiciones/lista}" class="card">
+            <div class="icon">🏆</div>
+            <h3>Competiciones</h3>
+            <p>Torneos en los que participan múltiples clubes.</p>
+            <div class="arrow">→</div>
+        </a>
+    </div>
+</section>
+
+<footer>Nicol Montoya &nbsp;·&nbsp; <span>Spring JPA Relaciones</span></footer>
+</body>
+</html>

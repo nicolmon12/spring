@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Club | JPA Relaciones</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+    <style>
+        :root{--bg:#080f0b;--surface:#0e1a12;--surface2:#152019;--border:rgba(255,255,255,.07);--accent:#b5f03e;--white:#edf5ee;--muted:#5a7a62;}
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--white);min-height:100vh;}
+        nav{position:sticky;top:0;z-index:200;display:flex;align-items:center;height:58px;background:rgba(8,15,11,.88);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 2rem;}
+        .brand{font-family:'Syne',sans-serif;font-size:1.15rem;font-weight:800;letter-spacing:1px;color:var(--accent);text-decoration:none;margin-right:2.5rem;white-space:nowrap;}
+        .nav-links{display:flex;align-items:center;gap:.2rem;}
+        .nav-links a{color:var(--muted);text-decoration:none;font-size:.83rem;font-weight:500;padding:.38rem .75rem;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap;}
+        .nav-links a:hover,.nav-links a.active{color:var(--white);background:rgba(255,255,255,.06);}
+        .nav-dropdown{position:relative;}
+        .nav-dropdown>a{display:flex;align-items:center;gap:.3rem;cursor:pointer;}
+        .nav-dropdown>a::after{content:'▾';font-size:.65rem;opacity:.5;transition:transform .2s;}
+        .nav-dropdown:hover>a::after{transform:rotate(180deg);}
+        .dropdown-menu{display:none;position:absolute;top:calc(100% + 6px);left:0;background:var(--surface2);border:1px solid var(--border);border-radius:10px;min-width:170px;padding:.35rem 0;box-shadow:0 16px 40px rgba(0,0,0,.5);}
+        .nav-dropdown.open .dropdown-menu{display:block;}
+        .dropdown-menu a{display:block;padding:.5rem 1rem;color:var(--muted);font-size:.82rem;white-space:nowrap;transition:background .15s,color .15s;background:none!important;}
+        .dropdown-menu a:hover{background:rgba(255,255,255,.05)!important;color:var(--white);}
+        .dropdown-menu .divider{border-top:1px solid var(--border);margin:.3rem 0;}
+        .form-wrap{max-width:580px;margin:3rem auto;padding:0 1.5rem;}
+        .form-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:2.5rem 2.2rem;}
+        .form-card h1{font-family:'Syne',sans-serif;font-size:1.9rem;font-weight:800;margin-bottom:2rem;}
+        .form-card h1 em{font-style:normal;color:var(--accent);}
+        .field{margin-bottom:1.25rem;display:flex;flex-direction:column;gap:.45rem;}
+        label{font-size:.72rem;font-weight:600;letter-spacing:.8px;color:var(--muted);text-transform:uppercase;}
+        input,select{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:.7rem 1rem;color:var(--white);font-family:'Outfit',sans-serif;font-size:.9rem;width:100%;transition:border-color .18s,background .18s;}
+        input:focus,select:focus{outline:none;border-color:rgba(181,240,62,.5);background:rgba(255,255,255,.06);}
+        input::placeholder{color:var(--muted);}
+        select option{background:#152019;color:var(--white);}
+        select[multiple]{height:120px;padding:.5rem;}
+        select[multiple] option:checked{background:rgba(181,240,62,.15);}
+        .hint{font-size:.73rem;color:var(--muted);margin-top:.3rem;}
+        .section-sep{font-family:'Syne',sans-serif;font-size:.75rem;font-weight:700;letter-spacing:1.5px;color:var(--accent);text-transform:uppercase;margin:1.6rem 0 1rem;padding-top:1.4rem;border-top:1px solid var(--border);}
+        .form-actions{display:flex;gap:.8rem;margin-top:2rem;}
+        .btn{display:inline-flex;align-items:center;gap:.4rem;padding:.6rem 1.2rem;border-radius:9px;font-size:.84rem;font-weight:600;cursor:pointer;text-decoration:none;border:none;font-family:'Outfit',sans-serif;transition:all .18s;}
+        .btn-primary{background:var(--accent);color:#080f0b;flex:1;justify-content:center;}
+        .btn-primary:hover{background:#caff5a;}
+        .btn-secondary{background:transparent;color:var(--muted);border:1px solid var(--border);}
+        .btn-secondary:hover{color:var(--white);border-color:rgba(255,255,255,.2);}
+    </style>
+</head>
+<body>
+<nav>
+    <a href="/" class="brand">⚽ JPA Relaciones</a>
+    <div class="nav-links">
+        <a th:href="@{/asociaciones/lista}">Asociaciones</a>
+        <div class="nav-dropdown" id="clubes-nav">
+            <a href="#" class="active" onclick="return false;">Clubes</a>
+            <div class="dropdown-menu">
+                <a th:href="@{/clubes/lista}">📋 Ver lista</a>
+                <div class="divider"></div>
+                <a th:href="@{/clubes/nuevo}">➕ Nuevo club</a>
+            </div>
+        </div>
+        <a th:href="@{/entrenadores/lista}">Entrenadores</a>
+        <a th:href="@{/jugadores/lista}">Jugadores</a>
+        <a th:href="@{/competiciones/lista}">Competiciones</a>
+    </div>
+</nav>
+<div class="form-wrap">
+    <div class="form-card">
+        <h1>🏟️ <em th:text="${club.id == null} ? 'Nuevo' : 'Editar'">Nuevo</em> Club</h1>
+        <form th:action="@{/clubes/guardar}" th:object="${club}" method="post">
+            <input type="hidden" th:field="*{id}"/>
+            <div class="field">
+                <label for="nombre">Nombre del Club</label>
+                <input type="text" id="nombre" th:field="*{nombre}" placeholder="ej: Millonarios F.C." required/>
+            </div>
+            <div class="section-sep">@ManyToOne — Asociación</div>
+            <div class="field">
+                <label for="asociacion">Asociación</label>
+                <select id="asociacion" name="asociacion.id">
+                    <option value="">-- Sin asociación --</option>
+                    <option th:each="a : ${asociaciones}"
+                            th:value="${a.id}"
+                            th:text="${a.nombre}"
+                            th:selected="${club.asociacion != null and club.asociacion.id == a.id}">FCF</option>
+                </select>
+            </div>
+            <div class="section-sep">@OneToOne — Entrenador</div>
+            <div class="field">
+                <label for="entrenador">Entrenador</label>
+                <select id="entrenador" name="entrenador.id">
+                    <option value="">-- Sin entrenador --</option>
+                    <option th:each="e : ${entrenadores}"
+                            th:value="${e.id}"
+                            th:text="${e.nombre + ' ' + e.apellido}"
+                            th:selected="${club.entrenador != null and club.entrenador.id == e.id}">José Pékerman</option>
+                </select>
+            </div>
+            <div class="section-sep">@ManyToMany — Competiciones</div>
+            <div class="field">
+                <label>Competiciones (Ctrl+Click para varias)</label>
+                <select name="competicionesIds" multiple>
+                    <option th:each="comp : ${competiciones}"
+                            th:value="${comp.id}"
+                            th:text="${comp.nombre}"
+                            th:selected="${club.competiciones != null and #lists.contains(club.competiciones, comp)}">Copa Libertadores</option>
+                </select>
+                <span class="hint">Mantén Ctrl (o Cmd en Mac) para elegir varias.</span>
+            </div>
+            <div class="form-actions">
+                <a th:href="@{/clubes/lista}" class="btn btn-secondary">← Cancelar</a>
+                <button type="submit" class="btn btn-primary">Guardar →</button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+(function(){
+  var dd = document.getElementById('clubes-nav');
+  if(!dd) return;
+  var toggle = dd.querySelector('a');
+  var menu = dd.querySelector('.dropdown-menu');
+  // Show on click of trigger
+  toggle.addEventListener('click', function(e){
+    e.preventDefault();
+    dd.classList.toggle('open');
+  });
+  // Keep open when hovering menu
+  var t;
+  dd.addEventListener('mouseenter', function(){ clearTimeout(t); dd.classList.add('open'); });
+  dd.addEventListener('mouseleave', function(){ t = setTimeout(function(){ dd.classList.remove('open'); }, 300); });
+  // Close on outside click
+  document.addEventListener('click', function(e){ if(!dd.contains(e.target)) dd.classList.remove('open'); });
+})();
+</script>
+</body>
+</html>

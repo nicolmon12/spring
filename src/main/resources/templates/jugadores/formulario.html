@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Jugador | JPA Relaciones</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+    <style>
+        :root{--bg:#080f0b;--surface:#0e1a12;--surface2:#152019;--border:rgba(255,255,255,.07);--accent:#b5f03e;--white:#edf5ee;--muted:#5a7a62;--danger:#f05555;}
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--white);min-height:100vh;}
+        nav{position:sticky;top:0;z-index:200;display:flex;align-items:center;height:58px;background:rgba(8,15,11,.88);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 2rem;}
+        .brand{font-family:'Syne',sans-serif;font-size:1.15rem;font-weight:800;letter-spacing:1px;color:var(--accent);text-decoration:none;margin-right:2.5rem;white-space:nowrap;}
+        .nav-links{display:flex;align-items:center;gap:.2rem;}
+        .nav-links a{color:var(--muted);text-decoration:none;font-size:.83rem;font-weight:500;padding:.38rem .75rem;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap;}
+        .nav-links a:hover,.nav-links a.active{color:var(--white);background:rgba(255,255,255,.06);}
+        .nav-dropdown{position:relative;}
+        .nav-dropdown>a{display:flex;align-items:center;gap:.3rem;cursor:pointer;}
+        .nav-dropdown>a::after{content:'▾';font-size:.65rem;opacity:.5;transition:transform .2s;}
+        .nav-dropdown:hover>a::after{transform:rotate(180deg);}
+        .dropdown-menu{display:none;position:absolute;top:calc(100% + 6px);left:0;background:var(--surface2);border:1px solid var(--border);border-radius:10px;min-width:170px;padding:.35rem 0;box-shadow:0 16px 40px rgba(0,0,0,.5);}
+        .nav-dropdown:hover .dropdown-menu{display:block;}
+        .dropdown-menu a{display:block;padding:.5rem 1rem;color:var(--muted);font-size:.82rem;white-space:nowrap;transition:background .15s,color .15s;background:none!important;}
+        .dropdown-menu a:hover{background:rgba(255,255,255,.05)!important;color:var(--white);}
+        .dropdown-menu .divider{border-top:1px solid var(--border);margin:.3rem 0;}
+        .btn{display:inline-flex;align-items:center;gap:.4rem;padding:.52rem 1.2rem;border-radius:8px;font-size:.84rem;font-weight:600;cursor:pointer;text-decoration:none;border:none;font-family:'Outfit',sans-serif;transition:all .18s;}
+        .btn-primary{background:var(--accent);color:#080f0b;}
+        .btn-primary:hover{background:#caff5a;}
+        .btn-edit{background:transparent;color:var(--accent);border:1px solid rgba(181,240,62,.35);padding:.32rem .75rem;font-size:.78rem;}
+        .btn-edit:hover{background:rgba(181,240,62,.1);}
+        .btn-danger{background:transparent;color:var(--danger);border:1px solid rgba(240,85,85,.35);padding:.32rem .75rem;font-size:.78rem;}
+        .btn-danger:hover{background:rgba(240,85,85,.1);}
+        .btn-secondary{background:transparent;color:var(--muted);border:1px solid var(--border);}
+        .btn-secondary:hover{color:var(--white);border-color:rgba(255,255,255,.2);}
+        .form-wrap{max-width:580px;margin:3rem auto;padding:0 1.5rem;}
+        .form-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:2.5rem 2.2rem;}
+        .form-card h1{font-family:'Syne',sans-serif;font-size:1.9rem;font-weight:800;margin-bottom:2rem;}
+        .form-card h1 em{font-style:normal;color:var(--accent);}
+        .field{margin-bottom:1.25rem;display:flex;flex-direction:column;gap:.45rem;}
+        .row2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+        label{font-size:.72rem;font-weight:600;letter-spacing:.8px;color:var(--muted);text-transform:uppercase;}
+        input,select{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:.7rem 1rem;color:var(--white);font-family:'Outfit',sans-serif;font-size:.9rem;width:100%;transition:border-color .18s,background .18s;}
+        input:focus,select:focus{outline:none;border-color:rgba(181,240,62,.5);background:rgba(255,255,255,.06);}
+        input::placeholder{color:var(--muted);}
+        select option{background:#152019;color:var(--white);}
+        input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) hue-rotate(60deg);}
+        .form-actions{display:flex;gap:.8rem;margin-top:2rem;}
+        .btn-submit{flex:1;justify-content:center;background:var(--accent);color:#080f0b;padding:.65rem 1.2rem;border-radius:9px;}
+        .btn-submit:hover{background:#caff5a;}
+    </style>
+</head>
+<body><nav>
+    <a href="/" class="brand">⚽ JPA Relaciones</a>
+    <div class="nav-links">
+        <a th:href="@{/asociaciones/lista}">Asociaciones</a>
+        <div class="nav-dropdown">
+            <a href="#">Clubes</a>
+            <div class="dropdown-menu">
+                <a th:href="@{/clubes/lista}">📋 Ver lista</a>
+                <div class="divider"></div>
+                <a th:href="@{/clubes/nuevo}">➕ Nuevo club</a>
+            </div>
+        </div>
+        <a th:href="@{/entrenadores/lista}">Entrenadores</a>
+        <a th:href="@{/jugadores/lista}" class="active">Jugadores</a>
+        <a th:href="@{/competiciones/lista}">Competiciones</a>
+    </div>
+</nav>
+<div class="form-wrap">
+    <div class="form-card">
+        <h1>⚽ <em th:text="${jugador.id == null} ? 'Nuevo' : 'Editar'">Nuevo</em> Jugador</h1>
+        <form th:action="@{/jugadores/guardar}" th:object="${jugador}" method="post">
+            <input type="hidden" th:field="*{id}"/>
+            <div class="row2">
+                <div class="field">
+                    <label for="nombre">Nombre</label>
+                    <input type="text" id="nombre" th:field="*{nombre}" placeholder="ej: James" required/>
+                </div>
+                <div class="field">
+                    <label for="apellido">Apellido</label>
+                    <input type="text" id="apellido" th:field="*{apellido}" placeholder="ej: Rodríguez" required/>
+                </div>
+            </div>
+            <div class="row2">
+                <div class="field">
+                    <label for="numero">Número</label>
+                    <input type="number" id="numero" th:field="*{numero}" placeholder="ej: 10" min="1" max="99" required/>
+                </div>
+                <div class="field">
+                    <label for="posicion">Posición</label>
+                    <select id="posicion" th:field="*{posicion}" required>
+                        <option value="">-- Seleccionar --</option>
+                        <option value="Portero">Portero</option>
+                        <option value="Defensa">Defensa</option>
+                        <option value="Mediocampista">Mediocampista</option>
+                        <option value="Delantero">Delantero</option>
+                    </select>
+                </div>
+            </div>
+            <div class="field">
+                <label for="club">Club</label>
+                <select id="club" name="club.id">
+                    <option value="">-- Sin club --</option>
+                    <option th:each="c : ${clubes}"
+                            th:value="${c.id}"
+                            th:text="${c.nombre}"
+                            th:selected="${jugador.club != null and jugador.club.id == c.id}">Millonarios</option>
+                </select>
+            </div>
+            <div class="form-actions">
+                <a th:href="@{/jugadores/lista}" class="btn btn-secondary">← Cancelar</a>
+                <button type="submit" class="btn btn-submit">Guardar →</button>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

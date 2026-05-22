@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <!-- NAV STYLES FRAGMENT — incluir en cada página -->
+    <th:block th:fragment="nav-styles">
+        <style>
+            nav{background:rgba(0,0,0,.35);backdrop-filter:blur(8px);padding:0 2rem;display:flex;align-items:center;gap:2rem;height:60px;position:sticky;top:0;z-index:100;border-bottom:1px solid rgba(255,255,255,.06);}
+            nav .brand{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:2px;color:var(--accent);text-decoration:none;}
+            nav a{color:var(--text-muted);text-decoration:none;font-size:.85rem;font-weight:500;transition:color .2s;}
+            nav a:hover,nav a.active{color:var(--white);}
+            .nav-dropdown{position:relative;}
+            .nav-dropdown > a{display:flex;align-items:center;gap:.3rem;cursor:pointer;}
+            .nav-dropdown > a::after{content:'▾';font-size:.7rem;opacity:.7;}
+            .dropdown-menu{display:none;position:absolute;top:calc(100% + 8px);left:0;background:#0d2b18;border:1px solid rgba(255,255,255,.1);border-radius:10px;min-width:160px;padding:.4rem 0;box-shadow:0 8px 24px rgba(0,0,0,.4);}
+            .nav-dropdown:hover .dropdown-menu{display:block;}
+            .dropdown-menu a{display:block;padding:.55rem 1rem;color:var(--text-muted);font-size:.83rem;white-space:nowrap;transition:background .15s,color .15s;}
+            .dropdown-menu a:hover{background:rgba(255,255,255,.06);color:var(--white);}
+            .dropdown-menu .divider{border-top:1px solid rgba(255,255,255,.07);margin:.3rem 0;}
+        </style>
+    </th:block>
+</head>
+<body>
+    <!-- NAV FRAGMENT — usar con th:replace o th:insert -->
+    <nav th:fragment="nav(active)">
+        <a href="/" class="brand">⚽ JPA Relaciones</a>
+        <a th:href="@{/asociaciones/lista}" th:classappend="${active == 'asociaciones'} ? 'active'">Asociaciones</a>
+        <div class="nav-dropdown">
+            <a href="#" th:classappend="${active == 'clubes'} ? 'active'">Clubes</a>
+            <div class="dropdown-menu">
+                <a th:href="@{/clubes/lista}">📋 Ver lista</a>
+                <div class="divider"></div>
+                <a th:href="@{/clubes/nuevo}">➕ Nuevo club</a>
+            </div>
+        </div>
+        <a th:href="@{/entrenadores/lista}" th:classappend="${active == 'entrenadores'} ? 'active'">Entrenadores</a>
+        <a th:href="@{/jugadores/lista}" th:classappend="${active == 'jugadores'} ? 'active'">Jugadores</a>
+        <a th:href="@{/competiciones/lista}" th:classappend="${active == 'competiciones'} ? 'active'">Competiciones</a>
+    </nav>
+</body>
+</html>
